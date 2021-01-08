@@ -116,7 +116,7 @@ class CatAndMouseEnv(gym.Env):
         self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
         while self.world[self.cat[0],self.cat[1]]:
             self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
-        if self.mode_obstacle:
+        if self.mode_mouse:
             self.mouse = np.array([np.random.randint(self.height),np.random.randint(self.width)])
             while self.world[self.mouse[0],self.mouse[1]] or all(self.mouse==self.cat):
                 self.mouse = np.array([np.random.randint(self.height),np.random.randint(self.width)])
@@ -193,17 +193,17 @@ class CatAndMouseEnv(gym.Env):
         
         
 if __name__ =="__main__":
-    env = CatAndMouseEnv(4,4,mode_mouse=1)
+    env = CatAndMouseEnv(8,8,mode_mouse=1)
     print("hello")
     env.reset()
     print(env.cat, env.mouse)
     env.render()
-    #x = input("press any key to exit")
+    x = input("press any key to exit")
     for _ in range(2000):
         env.render()
         a = env.action_space.sample()
         state, reward, isdone, info = env.step(a)
-        print("{0}, {1}, {2}, {3}".format(a, reward, isdone, info))
+        print("{0}, {1}, {2}, {3}".format(a, reward, isdone, _))
         if isdone:
             input('input any key')
             break

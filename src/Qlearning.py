@@ -26,11 +26,14 @@ class Qlearning:
         self.Q = np.zeros((self.num_states,self.num_action))
 
         self.env = CatAndMouseEnv(self.height,self.width,self.mode_obstacle,self.mode_mouse)
+        #self.visualization()
         self.max_count = 1000
         self.Epoch = 1000
         if self.mode_mouse:
-            self.max_count = 10000
-            self.Epoch = 10000
+            self.max_count *= 10
+            self.Epoch *= 10
+        if self.mode_obstacle:
+            self.Epoch *= 10
 
 
     def learn(self):
@@ -151,10 +154,30 @@ class Qlearning:
 
 
 if __name__ == "__main__":
-    q = Qlearning(8,8,mode_mouse=1)
+    mode_obstacle = 0
+    mode_mouse = 0
+    q = Qlearning(8,8,mode_obstacle,mode_mouse)
     q.learn()
-    print('Learn done!')
-    q.visualization()
+    np.savez('qlearning_%d_%d.npz'%(mode_obstacle,mode_mouse), map=q.env.world, \
+        mouse=q.env.mouse, Q=q.Q, mode_obstacle=mode_obstacle, mode_mouse=mode_mouse)
+    print('1. Learn done!')
+
+    mode_obstacle = 0
+    mode_mouse = 1
+    q = Qlearning(8,8,mode_obstacle,mode_mouse)
+    q.learn()
+    np.savez('qlearning_%d_%d.npz'%(mode_obstacle,mode_mouse), map=q.env.world, \
+        mouse=q.env.mouse, Q=q.Q, mode_obstacle=mode_obstacle, mode_mouse=mode_mouse)
+    print('2. Learn done!')
+
+    mode_obstacle = 1
+    mode_mouse = 1
+    q = Qlearning(8,8,mode_obstacle,mode_mouse)
+    q.learn()
+    np.savez('qlearning_%d_%d.npz'%(mode_obstacle,mode_mouse), map=q.env.world, \
+        mouse=q.env.mouse, Q=q.Q, mode_obstacle=mode_obstacle, mode_mouse=mode_mouse)
+    print('3. Learn done!')
+    '''q.visualization()
     input('Input to start test...')
     q.test()
-    print('Test done!')
+    print('Test done!')'''
