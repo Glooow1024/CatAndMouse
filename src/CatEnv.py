@@ -16,7 +16,7 @@ class CatAndMouseEnv(gym.Env):
         'video.frames_per_second': 2
     }
     
-    def __init__(self, height=8,width=10,mode_obstacle=0,mode_mouse=0):
+    def __init__(self, height=8,width=10,mode_obstacle=0,mode_mouse=0,map=None,mouse=None):
         """
         input
             height, width: size of map
@@ -24,22 +24,33 @@ class CatAndMouseEnv(gym.Env):
             mode_mouse   : 0-mouse static, 1-mouse move randomly
         """
         super(CatAndMouseEnv, self).__init__()
-        
+        self.ratio = 0.1
         # generate world
-        self.height = height
-        self.width = width
-        self.mode_obstacle = mode_obstacle
-        self.mode_mouse = mode_mouse
-        self.world = np.random.random((height,width))
-        self.world = (self.world > 0.85).astype(np.int8)
-        self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
-        while self.world[self.cat[0],self.cat[1]]:
+        if map is not None:
+            self.world = map
+            self.height,self.width = map.shape
+            self.mode_obstacle = mode_obstacle
+            self.mode_mouse = mode_mouse
+            self.mouse = mouse
             self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
-        self.mouse = np.array([np.random.randint(self.height),np.random.randint(self.width)])
-        while self.world[self.mouse[0],self.mouse[1]] or all(self.mouse==self.cat):
+            while self.world[self.cat[0],self.cat[1]] or all(self.mouse==self.cat):
+                self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
+            self.counts = 0 
+        else:
+            self.height = height
+            self.width = width
+            self.mode_obstacle = mode_obstacle
+            self.mode_mouse = mode_mouse
+            self.world = np.random.random((height,width))
+            self.world = (self.world < self.ratio).astype(np.int8)
+            self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
+            while self.world[self.cat[0],self.cat[1]]:
+                self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
             self.mouse = np.array([np.random.randint(self.height),np.random.randint(self.width)])
+            while self.world[self.mouse[0],self.mouse[1]] or all(self.mouse==self.cat):
+                self.mouse = np.array([np.random.randint(self.height),np.random.randint(self.width)])
         #plt.imshow(self.world)
-        
+
         # action spaces
         #self.action_map = {'up':np.array([-1, 0]), 'right':np.array([0, 1]), 'down':np.array([1, 0]), 'left':np.array([0, -1])}#, 'hold':np.array([0, 0])}
         self.action_map = [np.array([-1, 0]), np.array([0, 1]), np.array([1, 0]), np.array([0, -1])]
@@ -47,7 +58,7 @@ class CatAndMouseEnv(gym.Env):
 
         # visualization
         self.viewer = None #rendering.Viewer(np.maximum(20*height,600), np.maximum(20*width,1000))   # 600x400 是画板的长和框
-        self.u_size = 30
+        self.u_size = 15
         
         
     def step(self, action):
@@ -110,7 +121,7 @@ class CatAndMouseEnv(gym.Env):
         # reset map
         if self.mode_obstacle:
             self.world = np.random.random((self.height,self.width))
-            self.world = (self.world > 0.7).astype(np.int8)
+            self.world = (self.world < self.ratio).astype(np.int8)
             
         # reset cat and mouse
         self.cat = np.array([np.random.randint(self.height),np.random.randint(self.width)])
@@ -132,7 +143,7 @@ class CatAndMouseEnv(gym.Env):
                 self.viewer = None
             return
         u_size = self.u_size
-        m = 2       # gaps between two cells
+        m = 1       # gaps between two cells
 
         # 如果还没有设定屏幕对象，则初始化整个屏幕具备的元素。
         if self.viewer is None:
